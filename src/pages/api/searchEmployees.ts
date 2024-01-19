@@ -1,14 +1,16 @@
-// pages/api/searchEmployees.ts
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '@/lib/prisma';
+/*
+
+import { PrismaClient, Employee, Leave } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     const { name } = req.query;
 
     try {
-      const employees = await prisma.employee.findMany({
+      const employees: Employee[] = await prisma.employee.findMany({
         where: {
           name: {
             contains: name as string,
@@ -25,19 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       });
-      const response = employees.map((employee) => ({
+
+      const response: { id: number; name: string; position: string; leaves: { startDate: string; endDate: string; reason: string; }[] }[] = employees.map((employee) => ({
         id: employee.id,
         name: employee.name,
         position: employee.position,
-        leaves: employee.leaves.map((leave) => ({
-          startDate: leave.startDate.toISOString(),
-          endDate: leave.endDate.toISOString(),
-          reason: leave.reason,
+        leaves: (employee.leave as Leave[]).map((leaves) => ({
+          startDate: leaves.startDate.toISOString(),
+          endDate: leaves.endDate.toISOString(),
+          reason: leaves.reason,
         })),
       }));
-      
+
       res.status(200).json(response);
-      res.status(200).json(employees);
     } catch (error) {
       console.error('Error searching employees:', error);
       res.status(500).json({ error: 'Error searching employees' });
